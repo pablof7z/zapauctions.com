@@ -47,7 +47,7 @@
         } else if (content.match(/(http(s?):)([/|.|\w|\s|-])*\.(?:vimeo)/g)) {
             return `<iframe src="${content}" width="640" height="360" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>`
             // else if url is mp4
-        } else if (content.match(/(http(s?):)([/|.|\w|\s|-])*\.(?:mov)/g)) {
+        } else if (content.match(/(http(s?):)([/|.|\w|\s|-])*\.(?:mov|mp4)/g)) {
             return `<video controls class="max-h-64">
                 <source src="${content}" type="video/mp4">
                 Your browser does not support the video tag.`

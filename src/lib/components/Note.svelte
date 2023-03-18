@@ -6,6 +6,7 @@
     import { nip19 } from 'nostr-tools/index';
 	import { formatSatoshis } from '$lib/utils';
     import { pubkeyName } from '$lib/nostr/utils';
+    import ZapNote from './ZapNote.svelte';
 
     const timeAgo = new TimeAgo('en-US')
 
@@ -22,7 +23,7 @@
 
         const content = note.content;
         const zapraiseRegex = /#[t]*zapraiser\s+(\d+)([kKmM(btc|BTC)]*)/;
-        
+
         const match = content.match(zapraiseRegex);
         if (match) {
             const amount = parseInt(match[1]);
@@ -80,12 +81,12 @@
                         </div>
                     </div>
 
-                
+
                     <div class="
                         flex flex-col w-fit items-center bg-slate-50 dark:bg-gray-900 dark:border dark:border-gray-700 px-2 py-2 rounded-lg text-gray-500
                     ">
                         <div class="
-                            text-2xl font-black 
+                            text-2xl font-black
                             {raiseReached ? 'text-purple-600' : 'text-black dark:text-gray-300'}
                         ">
                             {formatSatoshis(zapraiseAmount, {tryGrouping: true, justNumber: true})}
@@ -150,7 +151,10 @@
                     text-sm
                     whitespace-nowrap
                 ">Copy Note ID</button>
+                <ZapNote note={note} />
             </div>
+
         </div>
+
     </div>
 </div>

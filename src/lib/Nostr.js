@@ -1,4 +1,4 @@
-import { nostrNotes, seenEvents, zaps, zapraisers, zapsPerNote, profiles, relayEvents, totalsPerNote, totalsPerRecipient, totalsPerSender, totalsPerZapper } from "$lib/store";
+import { nostrNotes, seenEvents, zaps, zapraisers, zapsPerNote, profiles, relayEvents, totalsPerNote, totalsPerRecipient, totalsPerSender, totalsPerZapper, zapRequestsPerNote } from "$lib/store";
 import "websocket-polyfill"
 import {RelayPool, Relay} from 'nostr';
 import { v4 as uuidv4 } from 'uuid';
@@ -93,7 +93,7 @@ export default class Nostr {
             this.pool.pool.unsubscribe(subId);
             // this.profilePool.pool.unsubscribe(subId);
         }
-        
+
         this.pool.pool.subscriptionQueue = {};
         this.pool.pool.activeSubscriptions = [];
         // this.profilePool.pool.subscriptionQueue = {};
@@ -109,91 +109,107 @@ export default class Nostr {
         totalsPerRecipient.update(() => { return {}; });
     }
 
+    processZapRequest(event) {
+        const noteTag = event.tags.find(t => t[0] === 'e');
+        const amountTag = event.tags.find(t => t[0] === 'amount');
+        if (!noteTag || !amountTag) return;
+        const taggedNote = noteTag[1];
+        const amount = amountTag[1];
+        this.reqProfile([event.pubkey]);
+
+        event.amount = amount / 1000;
+
+        zapRequestsPerNote.update((requests) => {
+            requests[taggedNote] = requests[taggedNote] || [];
+            requests[taggedNote].push(event);
+            return requests;
+        });
+    }
+
     processZap(event) {
         let zap;
         zap = eventToZap(event, profiles);
 
-        if (zap) {
-            if (zap.event.created_at > Date.now() / 1000 - (2 * 60)) {
-                this.reqProfile([zap.sender, zap.recipient]);
-            }
-            
-            // add zap
-            try {
-            zaps.update((zaps) => {
-                let index = 0;
-                while (index < zaps.length && zaps[index].created_at < zap.created_at) {
-                    index++;
-                }
-                zaps.splice(index, 0, zap);
-                return zaps;
-            });} catch (e) { console.log('1', e)}
+        if (!zap) { return; }
 
-            // add to zaps per note
-            try {
-            zapsPerNote.update((zapsPerNote) => {
-                let noteZaps = zapsPerNote[zap.zappedNoteId] || [];
-                let index = 0;
-
-                while (index < noteZaps.length && noteZaps[index].amount < zap.amount) {
-                    index++;
-                }
-                noteZaps.splice(index, 0, zap);
-                zapsPerNote[zap.zappedNoteId] = noteZaps;
-                return zapsPerNote;
-            })} catch (e) { console.log('2', e)}
-
-            // add to total per note
-            try {
-            totalsPerNote.update((totals) => {
-                let t = totals[zap.zappedNoteId] || { count: 0, amount: 0 };
-
-                t.count++;
-                t.amount += zap.amount;
-                totals[zap.zappedNoteId] = t;
-                
-                return totals;
-            })} catch (e) { console.log('3', e)}
-
-            // add to total per recipient
-            try {
-            totalsPerRecipient.update((totals) => {
-                let t = totals[zap.recipient] || { count: 0, amount: 0 };
-
-                t.count++;
-                t.amount += zap.amount;
-                totals[zap.recipient] = t;
-                
-                return totals;
-            })} catch (e) { console.log('4', e)}
-
-            // add to total per sender
-            try {
-            totalsPerSender.update((totals) => {
-                let t = totals[zap.sender] || { count: 0, amount: 0 };
-
-                t.count++;
-                t.amount += zap.amount;
-                totals[zap.sender] = t;
-                
-                return totals;
-            })} catch (e) { console.log('5', e)}
-
-            // add to total per sender
-            try {
-                if (zap.zapper) {
-                    totalsPerZapper.update((totals) => {
-                        let t = totals[zap.zapper] || { count: 0, amount: 0 };
-        
-                        t.count++;
-                        t.amount += zap.amount;
-                        totals[zap.zapper] = t;
-                        
-                        return totals;
-                    })
-                }
-            } catch (e) { console.log('5', e)}
+        if (zap.event.created_at > Date.now() / 1000 - (2 * 60)) {
+            this.reqProfile([zap.sender, zap.recipient]);
         }
+
+        // add zap
+        zaps.update((zaps) => {
+            let index = 0;
+            while (index < zaps.length && zaps[index].created_at < zap.created_at) {
+                index++;
+            }
+            zaps.splice(index, 0, zap);
+            return zaps;
+        });
+
+        // add to zaps per note
+        try {
+        zapsPerNote.update((zapsPerNote) => {
+            let noteZaps = zapsPerNote[zap.zappedNoteId] || [];
+            let index = 0;
+
+            while (index < noteZaps.length && noteZaps[index].amount < zap.amount) {
+                index++;
+            }
+            noteZaps.splice(index, 0, zap);
+            zapsPerNote[zap.zappedNoteId] = noteZaps;
+            return zapsPerNote;
+        })} catch (e) { console.log('2', e)}
+
+        // add to total per note
+        try {
+        totalsPerNote.update((totals) => {
+            let t = totals[zap.zappedNoteId] || { count: 0, amount: 0 };
+
+            t.count++;
+            t.amount += zap.amount;
+            totals[zap.zappedNoteId] = t;
+
+            return totals;
+        })} catch (e) { console.log('3', e)}
+
+        // add to total per recipient
+        try {
+        totalsPerRecipient.update((totals) => {
+            let t = totals[zap.recipient] || { count: 0, amount: 0 };
+
+            t.count++;
+            t.amount += zap.amount;
+            totals[zap.recipient] = t;
+
+            return totals;
+        })} catch (e) { console.log('4', e)}
+
+        // add to total per sender
+        try {
+        totalsPerSender.update((totals) => {
+            let t = totals[zap.sender] || { count: 0, amount: 0 };
+
+            t.count++;
+            t.amount += zap.amount;
+            totals[zap.sender] = t;
+
+            return totals;
+        })} catch (e) { console.log('5', e)}
+
+        // add to total per sender
+        try {
+            if (zap.zapper) {
+                totalsPerZapper.update((totals) => {
+                    let t = totals[zap.zapper] || { count: 0, amount: 0 };
+
+                    t.count++;
+                    t.amount += zap.amount;
+                    totals[zap.zapper] = t;
+
+                    return totals;
+                })
+            }
+        } catch (e) { console.log('5', e)}
     }
 
     processMetadata(event) {
@@ -202,7 +218,7 @@ export default class Nostr {
         } catch (e) {
             return;
         }
-        
+
         profiles.update((profiles) => {
             profiles[event.pubkey] = {
                 ...profiles[event.pubkey],
@@ -224,7 +240,7 @@ export default class Nostr {
                     isZapraiser = false;
                 }
             }
-            
+
             notes[event.id] = event;
             return notes;
         });
@@ -247,7 +263,6 @@ export default class Nostr {
     }
 
     async processEvent(event, relay) {
-        console.log(event);
         let existingEvent = false;
 
         seenEvents.update((events) => {
@@ -258,16 +273,16 @@ export default class Nostr {
             events[event.id] = true;
             return events;
         });
-        
+
         if (existingEvent) { return; }
-        
+
+
         this.updateEventsSeenPerRelay(relay);
 
-        switch (event.kind) {
-            case 9734, 9735: await this.processZap(event); break;
-            case 0: await this.processMetadata(event); break;
-            case 1: await this.processNote(event); break;
-        }
+        if (event.kind === 9374) { this.processZapRequest(event); }
+        if (event.kind === 0) { this.processMetadata(event); }
+        if (event.kind === 1) { this.processNote(event); }
+        if (event.kind === 9735) { this.processZap(event); }
 
         // if (event.kind === 9735) {
         //     this.pool.send(
