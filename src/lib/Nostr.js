@@ -1,6 +1,19 @@
-import { nostrNotes, seenEvents, zaps, zapraisers, zapsPerNote, profiles, relayEvents, totalsPerNote, totalsPerRecipient, totalsPerSender, totalsPerZapper, zapRequestsPerNote } from "$lib/store";
-import "websocket-polyfill"
-import {RelayPool, Relay} from 'nostr';
+import {
+    nostrNotes,
+    seenEvents,
+    zaps,
+    zapraisers,
+    zapsPerNote,
+    profiles,
+    relayEvents,
+    totalsPerNote,
+    totalsPerRecipient,
+    totalsPerSender,
+    totalsPerZapper,
+    zapRequestsPerNote
+} from '$lib/store';
+import 'websocket-polyfill';
+import { RelayPool, Relay } from 'nostr';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateZapriserAmount } from '$lib/utils';
 import { eventToZap } from '$lib/nostr/utils';
@@ -9,25 +22,25 @@ const connectionStatus = {
     connecting: 'connecting',
     connected: 'connected',
     disconnected: 'disconnected',
-    error: 'error',
-}
+    error: 'error'
+};
 export default class Nostr {
-	constructor() {
+    constructor() {
         this.pool = {
             pool: new RelayPool([]),
             subscriptionQueue: {},
             delayedSubscriptions: {},
             activeSubscriptions: []
-        }
+        };
         // this.profilePool = {
         //     pool: new RelayPool(['wss://nos.lol', 'wss://relay.damus.io', 'wss://relay.snort.social']),
         //     subscriptionQueue: {},
         //     delayedSubscriptions: {},
         //     activeSubscriptions: []
         // };
-        this.relays = []
+        this.relays = [];
         this.relayStatus = connectionStatus.disconnected;
-	}
+    }
 
     async add(relayUrl) {
         const relay = new Relay(relayUrl);
@@ -38,13 +51,13 @@ export default class Nostr {
             relayEvents.update((relays) => {
                 relays[relay.url] = 0;
                 return relays;
-            })
+            });
             Object.values(this.pool.subscriptionQueue).forEach((queries) => {
                 relay.subscribe(uuidv4(), queries);
-            })
-        })
+            });
+        });
 
-        this.pool.pool.on('event', async (relay, subId, e) => await this.processEvent(e, relay))
+        this.pool.pool.on('event', async (relay, subId, e) => await this.processEvent(e, relay));
         // this.profilePool.pool.on('event', async (relay, subId, e) => await this.processEvent(e, relay))
         // this.pool.on('notice', async (relay, message) => {
         //     console.log(`NOTICE from ${relay.url}: ${message}`);
@@ -54,20 +67,26 @@ export default class Nostr {
         // })
     }
 
-    subscribe(queries, cleanAfter=2000, pool) {
-        if (!pool) { pool = this.pool; }
-        const subId = uuidv4()
-        if (!Object.values(this.pool.subscriptionQueue).find((q) => JSON.stringify(q) === JSON.stringify(queries))) {
+    subscribe(queries, cleanAfter = 2000, pool) {
+        if (!pool) {
+            pool = this.pool;
+        }
+        const subId = uuidv4();
+        if (
+            !Object.values(this.pool.subscriptionQueue).find(
+                (q) => JSON.stringify(q) === JSON.stringify(queries)
+            )
+        ) {
             this.pool.subscriptionQueue[subId] = queries;
         }
 
         if (queries[0]?.kinds && queries[0]?.kinds[0] === 0) {
             console.log('delayed subscription', queries, pool.pool.relays[0].url);
         } else {
-            console.log(queries)
+            console.log(queries);
         }
 
-        pool.pool.subscribe(subId, queries)
+        pool.pool.subscribe(subId, queries);
 
         if (cleanAfter) {
             setTimeout(() => {
@@ -82,7 +101,9 @@ export default class Nostr {
     }
 
     unsubscribe(subId, pool) {
-        if (!pool) { pool = this.pool; }
+        if (!pool) {
+            pool = this.pool;
+        }
         delete this.pool.subscriptionQueue[subId];
         pool.pool.unsubscribe(subId);
     }
@@ -102,16 +123,26 @@ export default class Nostr {
 
     async reset() {
         zaps.update(() => []);
-        seenEvents.update(() => { return {}; });
-        zapsPerNote.update(() => { return {}; });
-        totalsPerNote.update(() => { return {}; });
-        totalsPerSender.update(() => { return {}; });
-        totalsPerRecipient.update(() => { return {}; });
+        seenEvents.update(() => {
+            return {};
+        });
+        zapsPerNote.update(() => {
+            return {};
+        });
+        totalsPerNote.update(() => {
+            return {};
+        });
+        totalsPerSender.update(() => {
+            return {};
+        });
+        totalsPerRecipient.update(() => {
+            return {};
+        });
     }
 
     processZapRequest(event) {
-        const noteTag = event.tags.find(t => t[0] === 'e');
-        const amountTag = event.tags.find(t => t[0] === 'amount');
+        const noteTag = event.tags.find((t) => t[0] === 'e');
+        const amountTag = event.tags.find((t) => t[0] === 'amount');
         if (!noteTag || !amountTag) return;
         const taggedNote = noteTag[1];
         const amount = amountTag[1];
@@ -130,9 +161,11 @@ export default class Nostr {
         let zap;
         zap = eventToZap(event, profiles);
 
-        if (!zap) { return; }
+        if (!zap) {
+            return;
+        }
 
-        if (zap.event.created_at > Date.now() / 1000 - (2 * 60)) {
+        if (zap.event.created_at > Date.now() / 1000 - 2 * 60) {
             this.reqProfile([zap.sender, zap.recipient]);
         }
 
@@ -148,53 +181,65 @@ export default class Nostr {
 
         // add to zaps per note
         try {
-        zapsPerNote.update((zapsPerNote) => {
-            let noteZaps = zapsPerNote[zap.zappedNoteId] || [];
-            let index = 0;
+            zapsPerNote.update((zapsPerNote) => {
+                let noteZaps = zapsPerNote[zap.zappedNoteId] || [];
+                let index = 0;
 
-            while (index < noteZaps.length && noteZaps[index].amount < zap.amount) {
-                index++;
-            }
-            noteZaps.splice(index, 0, zap);
-            zapsPerNote[zap.zappedNoteId] = noteZaps;
-            return zapsPerNote;
-        })} catch (e) { console.log('2', e)}
+                while (index < noteZaps.length && noteZaps[index].amount < zap.amount) {
+                    index++;
+                }
+                noteZaps.splice(index, 0, zap);
+                zapsPerNote[zap.zappedNoteId] = noteZaps;
+                return zapsPerNote;
+            });
+        } catch (e) {
+            console.log('2', e);
+        }
 
         // add to total per note
         try {
-        totalsPerNote.update((totals) => {
-            let t = totals[zap.zappedNoteId] || { count: 0, amount: 0 };
+            totalsPerNote.update((totals) => {
+                let t = totals[zap.zappedNoteId] || { count: 0, amount: 0 };
 
-            t.count++;
-            t.amount += zap.amount;
-            totals[zap.zappedNoteId] = t;
+                t.count++;
+                t.amount += zap.amount;
+                totals[zap.zappedNoteId] = t;
 
-            return totals;
-        })} catch (e) { console.log('3', e)}
+                return totals;
+            });
+        } catch (e) {
+            console.log('3', e);
+        }
 
         // add to total per recipient
         try {
-        totalsPerRecipient.update((totals) => {
-            let t = totals[zap.recipient] || { count: 0, amount: 0 };
+            totalsPerRecipient.update((totals) => {
+                let t = totals[zap.recipient] || { count: 0, amount: 0 };
 
-            t.count++;
-            t.amount += zap.amount;
-            totals[zap.recipient] = t;
+                t.count++;
+                t.amount += zap.amount;
+                totals[zap.recipient] = t;
 
-            return totals;
-        })} catch (e) { console.log('4', e)}
+                return totals;
+            });
+        } catch (e) {
+            console.log('4', e);
+        }
 
         // add to total per sender
         try {
-        totalsPerSender.update((totals) => {
-            let t = totals[zap.sender] || { count: 0, amount: 0 };
+            totalsPerSender.update((totals) => {
+                let t = totals[zap.sender] || { count: 0, amount: 0 };
 
-            t.count++;
-            t.amount += zap.amount;
-            totals[zap.sender] = t;
+                t.count++;
+                t.amount += zap.amount;
+                totals[zap.sender] = t;
 
-            return totals;
-        })} catch (e) { console.log('5', e)}
+                return totals;
+            });
+        } catch (e) {
+            console.log('5', e);
+        }
 
         // add to total per sender
         try {
@@ -207,9 +252,11 @@ export default class Nostr {
                     totals[zap.zapper] = t;
 
                     return totals;
-                })
+                });
             }
-        } catch (e) { console.log('5', e)}
+        } catch (e) {
+            console.log('5', e);
+        }
     }
 
     processMetadata(event) {
@@ -225,7 +272,7 @@ export default class Nostr {
                 ...event.content
             };
             return profiles;
-        })
+        });
     }
 
     processNote(event) {
@@ -256,10 +303,10 @@ export default class Nostr {
     }
 
     updateEventsSeenPerRelay(relay) {
-        relayEvents.update(relays => {
+        relayEvents.update((relays) => {
             relays[relay.url] = (relays[relay.url] || 0) + 1;
             return relays;
-        })
+        });
     }
 
     async processEvent(event, relay) {
@@ -274,15 +321,24 @@ export default class Nostr {
             return events;
         });
 
-        if (existingEvent) { return; }
-
+        if (existingEvent) {
+            return;
+        }
 
         this.updateEventsSeenPerRelay(relay);
 
-        if (event.kind === 9374) { this.processZapRequest(event); }
-        if (event.kind === 0) { this.processMetadata(event); }
-        if (event.kind === 1) { this.processNote(event); }
-        if (event.kind === 9735) { this.processZap(event); }
+        if (event.kind === 9374) {
+            this.processZapRequest(event);
+        }
+        if (event.kind === 0) {
+            this.processMetadata(event);
+        }
+        if (event.kind === 1) {
+            this.processNote(event);
+        }
+        if (event.kind === 9735) {
+            this.processZap(event);
+        }
 
         // if (event.kind === 9735) {
         //     this.pool.send(
@@ -291,12 +347,18 @@ export default class Nostr {
         // }
     }
 
-    delayedSubscribe(filters, name, delay, closeAfter=false, pool) {
-        if (!pool) { pool = this.pool; }
+    delayedSubscribe(filters, name, delay, closeAfter = false, pool) {
+        if (!pool) {
+            pool = this.pool;
+        }
 
-        pool.delayedSubscriptions[name] = pool.delayedSubscriptions[name] || { filters: []};
+        pool.delayedSubscriptions[name] = pool.delayedSubscriptions[name] || { filters: [] };
         filters.forEach((f) => {
-            if (!pool.delayedSubscriptions[name].filters.find((q) => JSON.stringify(q) === JSON.stringify(f))) {
+            if (
+                !pool.delayedSubscriptions[name].filters.find(
+                    (q) => JSON.stringify(q) === JSON.stringify(f)
+                )
+            ) {
                 pool.delayedSubscriptions[name].filters.push(f);
             }
         });
@@ -310,12 +372,12 @@ export default class Nostr {
         }
     }
 
-    reqEvent(eventId, delay=1000) {
+    reqEvent(eventId, delay = 1000) {
         if (!zaps[eventId]) {
             if (delay === 0) {
-                this.subscribe([{ids: [eventId]}, { '#e': [eventId] }]);
+                this.subscribe([{ ids: [eventId] }, { '#e': [eventId] }]);
             } else {
-                this.delayedSubscribe([{ids: [eventId]}, { '#e': [eventId] }], 'reqEvent', delay);
+                this.delayedSubscribe([{ ids: [eventId] }, { '#e': [eventId] }], 'reqEvent', delay);
             }
         }
     }
@@ -323,14 +385,14 @@ export default class Nostr {
     reqProfile(pubkeys) {
         let subpubkeys = [];
         if (Array.isArray(pubkeys)) {
-            subpubkeys = pubkeys // .filter((p) => !profiles[p]);
+            subpubkeys = pubkeys; // .filter((p) => !profiles[p]);
         } else {
             subpubkeys = [pubkeys];
         }
 
         if (subpubkeys.length) {
             // this.delayedSubscribe([{kinds:[0], authors: subpubkeys}], 'reqProfile', 500, 500, this.profilePool);
-            this.delayedSubscribe([{kinds:[0], authors: subpubkeys}], 'reqProfile', 500, 500);
+            this.delayedSubscribe([{ kinds: [0], authors: subpubkeys }], 'reqProfile', 500, 500);
         }
     }
 }
