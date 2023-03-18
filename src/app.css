@@ -2,12 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 @font-face {
-    font-family: "Press Start 2P";
+    font-family: 'Press Start 2P';
     src: url(/fonts/PressStart2P-Regular.ttf) format('truetype');
 }
 
 h1 {
-    font-family: "Press Start 2P";
+    font-family: 'Press Start 2P';
 }
 
 .note-content h1 {
@@ -27,13 +27,11 @@ h1 {
     text-decoration: underline;
 }
 
-/* h3 {
-    font-family: Inter var !important;
-    font-smooth: always;
-    font-smooth: 2em !important;
-} */
-
-:root { font-family: monospace, 'Inter', sans-serif; }
+:root {
+    font-family: monospace, 'Inter', sans-serif;
+}
 @supports (font-variation-settings: normal) {
-    :root { font-family: 'Inter var', sans-serif; }
+    :root {
+        font-family: 'Inter var', sans-serif;
+    }
 }
