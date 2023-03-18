@@ -3,6 +3,7 @@
     import { onMount } from 'svelte';
     import { Popover, PopoverButton, PopoverPanel, Transition } from '@rgossiaux/svelte-headlessui';
     import Avatar from './Avatar.svelte';
+    import RelayMenu from '$lib/components/RelayMenu.svelte';
 
     let loggedIn;
 
@@ -48,14 +49,7 @@
                 >
 
                 <PopoverPanel style="position: absolute; z-index: 10;">
-                    <div class="panel-contents">
-                        <a href="/analytics">Analytics</a>
-                        <a href="/engagement">Engagement</a>
-                        <a href="/security">Security</a>
-                        <a href="/integrations">Integrations</a>
-                    </div>
-
-                    <img src="/solutions.jpg" alt="" />
+                    <RelayMenu />
                 </PopoverPanel>
             </Popover>
             <Popover style="position: relative;">
