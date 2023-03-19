@@ -11,7 +11,7 @@
     });
 </script>
 
-<div class="flex flex-row gap-6 items-center">
+<div class="my-4 flex flex-row gap-6 items-center">
     <Avatar pubkey={$loggedUser} klass="w-12 h-12" />
     <div class="profileData flex flex-col gap-1">
         {#if $profiles[$loggedUser]}

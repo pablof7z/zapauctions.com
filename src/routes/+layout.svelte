@@ -10,7 +10,7 @@
     TimeAgo.addDefaultLocale(en);
 
     onMount(async () => {
-        await $nostrPool.add('wss://relay.nostr.band');
+        // await $nostrPool.add('wss://relay.nostr.band');
         await $nostrPool.add('ws://localhost:8080');
 
         // try {
