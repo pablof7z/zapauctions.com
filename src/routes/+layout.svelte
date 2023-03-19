@@ -10,7 +10,6 @@
     TimeAgo.addDefaultLocale(en);
 
     onMount(async () => {
-        console.log('Relay menu');
         // await $nostrPool.add('wss://relay.nostr.band');
         await $nostrPool.add('ws://localhost:8080');
 
@@ -30,12 +29,14 @@
 </script>
 
 <div class="wrapper">
-    <div
-        class="flex flex-col bg-gray-50 text-gray-600 dark:text-gray-200 dark:bg-gray-900 min-h-screen font-sans antialiased"
-    >
+    <div class="w-7/8 min-w-fit max-w-4xl mx-auto flex flex-col font-sans antialiased">
         <div class="flex flex-col w-full">
             <Header />
-            <slot />
+            <div
+                class="mb-20 content-wrapper w-7/8 min-w-fit max-w-4xl mx-auto flex flex-col font-sans antialiased"
+            >
+                <slot />
+            </div>
             <Footer />
         </div>
     </div>

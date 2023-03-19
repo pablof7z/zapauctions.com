@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @font-face {
     font-family: 'Press Start 2P';
     src: url(/fonts/PressStart2P-Regular.ttf) format('truetype');
@@ -25,6 +26,14 @@ h1 {
     font-weight: 500;
     color: rgb(126 34 206 / var(--tw-text-opacity));
     text-decoration: underline;
+}
+
+.form-label {
+    @apply block font-medium mb-2;
+}
+
+.form-input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black text-xl py-2;
 }
 
 :root {
