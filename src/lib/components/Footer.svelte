@@ -1,4 +1,6 @@
-<footer class="p-5 bg-black font-mono text-white w-full text-center mt-12">
+<footer
+    class="fixed py-2 bg-gray-50/90 dark:bg-gray-900/90 font-mono text-gray-50 w-full text-center mt-12 left-0 bottom-0"
+>
     <div class="flex justify-center flex-row">
         <div class="text-sm">
             🍍 ZapAuction by

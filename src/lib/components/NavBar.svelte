@@ -4,6 +4,10 @@
     import { Popover, PopoverButton, PopoverPanel, Transition } from '@rgossiaux/svelte-headlessui';
     import Avatar from './Avatar.svelte';
     import RelayMenu from '$lib/components/RelayMenu.svelte';
+    import { goto } from '$app/navigation';
+
+    const popoverClasses =
+        'absolute right-0 top-10 bg-white text-black dark:bg-gray-700 dark:text-gray-200 shadow-lg rounded-lg w-96 z-10 flex flex-col p-4 sm:p-6 text-sm sm:text-base leading-7';
 
     let loggedIn;
 
@@ -27,7 +31,7 @@
     export function logout() {
         loggedUser.set(null);
         localStorage.removeItem('loggedUserPubkey');
-        console.log('Logged out');
+        goto('/');
     }
 </script>
 
@@ -35,22 +39,46 @@
     <div class="logo flex flex-row gap-4 items-center text-yellow-700 dark:text-yellow-400">
         <a
             href="/"
-            class="flex flex-row items-baseline gap-2 text-3xl"
+            class="flex flex-row items-baseline gap-2 text-xl sm:text-3xl"
             style="font-family: 'Press Start 2P';"
         >
-            <img src="/images/pineapple-svgrepo-com.svg" alt="ZapAuction" class="w-10 h-10" />
+            <img
+                src="/images/pineapple-svgrepo-com.svg"
+                alt="ZapAuction"
+                class="w-6 h-6 sm:w-10 sm:h-10"
+            />
             ZapAuction
         </a>
-        <nav class="ml-auto flex flex-row gap-4 font-medium">
+        <nav class="ml-auto flex flex-row gap-4 font-medium items-center">
+            <div style="position: relative;">
+                <a
+                    href="/e/new"
+                    alt="Create a listing"
+                    class="px-2 py-1.5
+                    hover:bg-indigo-400 hover:dark:bg-indigo-700
+                    border border-indigo-400 dark:border-indigo-700
+                    dark:text-gray-200 dark:hover:text-white rounded-lg"
+                >
+                    Create a listing
+                </a>
+            </div>
             <Popover style="position: relative;">
                 <PopoverButton
                     class="px-2 py-1 border border-yellow-700 dark:border-yellow-400 rounded-lg"
                     >Relays</PopoverButton
                 >
-
-                <PopoverPanel style="position: absolute; z-index: 10;">
-                    <RelayMenu />
-                </PopoverPanel>
+                <Transition
+                    enter="transition duration-100 ease-out"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="transition duration-75 ease-out"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <PopoverPanel class={popoverClasses}>
+                        <RelayMenu />
+                    </PopoverPanel>
+                </Transition>
             </Popover>
             <Popover style="position: relative;">
                 <PopoverButton
@@ -65,10 +93,10 @@
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <PopoverPanel
-                        class="absolute right-0 top-10 bg-white text-black dark:bg-gray-700 dark:text-gray-200 shadow-lg rounded-lg w-96 z-10 flex flex-col p-8 leading-7"
-                    >
-                        <h1 class="font-bold text-lg mb-3">Nostr-powered, Bitcoin-synced</h1>
+                    <PopoverPanel class={popoverClasses}>
+                        <h1 class="font-bold text-base sm:text-lg mb-3">
+                            Nostr-powered, Bitcoin-synced
+                        </h1>
 
                         <p class="mb-4">ZapAuction is a Nostr-powered auction site.</p>
                         <ul class="list-inside ml-4">
@@ -77,7 +105,7 @@
                                 ⏳ Auctions close when Bitcoin prints a new block
                             </li>
                         </ul>
-                        <p class="font-bold text-xl mt-6 font-mono">🧡 Pura Vida!</p>
+                        <p class="font-bold text-base sm:text-lg mt-6 font-mono">🧡 Pura Vida!</p>
                     </PopoverPanel>
                 </Transition>
             </Popover>
@@ -94,11 +122,9 @@
                         leaveFrom="opacity-100"
                         leaveTo="opacity-0"
                     >
-                        <PopoverPanel
-                            class="flex flex-col gap-2 absolute right-0 top-10 bg-white text-black dark:bg-gray-700 dark:text-gray-200 shadow-lg rounded-lg w-96 z-10 flex flex-col p-2 leading-7"
-                        >
+                        <PopoverPanel class="{popoverClasses} p-2 sm:p-2">
                             <a
-                                href="#"
+                                href="/profile"
                                 class="px-2 py-1 hover:bg-yellow-700/20 hover:dark:bg-yellow-400/20 rounded-lg"
                                 >Profile</a
                             >

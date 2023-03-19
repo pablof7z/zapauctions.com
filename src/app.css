@@ -27,6 +27,14 @@ h1 {
     text-decoration: underline;
 }
 
+.form-label {
+    @apply block font-medium mb-2;
+}
+
+.form-input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black text-xl py-2;
+}
+
 :root {
     font-family: monospace, 'Inter', sans-serif;
 }

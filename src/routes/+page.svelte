@@ -7,7 +7,6 @@
     import Hero from '$lib/components/Hero.svelte';
     import ZapFeed from '$lib/components/ZapFeed.svelte';
     import NoteRanking from '$lib/components/NoteRanking.svelte';
-    import ZapRaisers from '$lib/components/ZapRaisers.svelte';
 
     let mode = 'zap-feed';
     let sortMode = 'amount';
@@ -25,7 +24,7 @@
     <title>ZapAuction</title>
 </svelte:head>
 
-<Hero />
+<!-- <Hero />
 
 <div class="overflow-scroll w-full flex flex-row justify-start sm:justify-center px-2">
     <div
@@ -83,4 +82,4 @@
     {#if mode === 'zapraisers'}
         <ZapRaisers />
     {/if}
-</div>
+</div> -->
