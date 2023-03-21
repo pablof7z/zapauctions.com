@@ -32,7 +32,6 @@
     onMount(async () => {
         try {
             ownPubkey = $loggedUser;
-            console.log(ownPubkey);
         } catch (e) {
             ownPubkey = null;
         }
@@ -45,7 +44,7 @@
     async function submit(e) {
         e.preventDefault();
 
-        ownPubkey = await $nostrPool.fetchOwnProfile();
+        ownPubkey = $loggedUser;
         if (!ownPubkey) {
             alert('No nostr pubkey?');
             return;
@@ -69,10 +68,10 @@
         // if (parseInt(reservePrice) > 0) {
         //     event.tags.push(["reservePrice", reservePrice])
         // }
-        console.log(event);
 
         let { publishEvent } = await $nostrPool.signAndPublishEvent(event);
         publishEventId = publishEvent.id;
+        console.log(event);
     }
 
     // hack? what hack?
@@ -116,12 +115,7 @@
                 <div>
                     <div class="my-3 flex-1 md:mr-1">
                         <label class="form-label" for="subject">Subject</label>
-                        <input
-                            bind:value={subject}
-                            type="text"
-                            name="subject"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black text-xl py-2"
-                        />
+                        <input bind:value={subject} type="text" name="subject" class="form-input" />
                     </div>
                     <div class="flex flex-col">
                         <label class="form-label" for="content">Content</label>
@@ -130,10 +124,7 @@
                             name="content"
                             cols="30"
                             rows="10"
-                            class="
-                                    w-full rounded-lg p-2 text-lg
-                                    text-black
-                                "
+                            class="form-input"
                         />
                     </div>
                     <div class="flex flex-col md:flex-row">

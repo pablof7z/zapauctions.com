@@ -1,18 +1,16 @@
 <script>
-	import { onMount } from "svelte";
     import MarkdownIt from 'markdown-it';
-	import { tick } from "svelte";
-    import { massageString } from "$lib/utils";
-    
+    import { massageString } from '$lib/utils';
+
     let md = new MarkdownIt();
 
     export let content;
     export let tags;
     let renderContent;
 
-    $: renderContent = massageString(md.render(content).toString())
+    $: renderContent = massageString(md.render(content).toString());
 </script>
 
-<div class="note-content">
+<div class="note-content text-black dark:text-white">
     {@html renderContent}
 </div>

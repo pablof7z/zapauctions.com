@@ -18,6 +18,7 @@ import { RelayPool, Relay } from 'nostr';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateZapriserAmount } from '$lib/utils';
 import { eventToZap } from '$lib/nostr/utils';
+import { getEventHash } from 'nostr-tools';
 
 const connectionStatus = {
     connecting: 'connecting',
@@ -429,5 +430,12 @@ export default class Nostr {
             // this.delayedSubscribe([{kinds:[0], authors: subpubkeys}], 'reqProfile', 500, 500, this.profilePool);
             this.delayedSubscribe([{ kinds: [0], authors: subpubkeys }], 'reqProfile', 500, 500);
         }
+    }
+
+    async signAndPublishEvent(event) {
+        event.id = getEventHash(event);
+        const signedEvent = await window.nostr.signEvent(event);
+        await this.pool.pool.send(['EVENT', signedEvent], this.relays);
+        return { publishEvent: signedEvent };
     }
 }

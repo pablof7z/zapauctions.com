@@ -17,4 +17,4 @@
         $profiles[pubkey]?.picture || `https://robohash.org/${pubkey?.slice(0, 1)}.png?set=set1`;
 </script>
 
-<img class="{klass} ring-4 ring-white rounded-full" src={picture} alt="" />
+<img class="{klass} ring-4 dark:ring-gray-700 ring-yellow-700 rounded-full" src={picture} alt="" />
