@@ -6,7 +6,7 @@
     import { formatSatoshis } from '$lib/utils';
     import { nip19 } from 'nostr-tools/index';
     import TimeAgo from 'javascript-time-ago'
-    import { createEventDispatcher } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     const dispatch = createEventDispatcher();
     export let zap;
     export let opened;
@@ -14,6 +14,12 @@
     let zappedNote;
 
     let ago;
+
+    onMount(async () => {
+        $nostrPool.delayedSubscribe([
+            {kinds: [5], '#e': [zap.event.id]},
+        ], 'zap-request-deletes', 250)
+    });
 
     $: {
         try {
@@ -57,39 +63,12 @@
     }
 </script>
 
-{#if opened}
-    {#if zappedNote}
-        <Note note={zappedNote} />
-    {:else if zap.zappedNoteId}
-        <div>
-            Loading note
-            <a href="nostr:{nip19.noteEncode(zap.zappedNoteId)}" class="
-            py-2
-            px-4
-            rounded-lg
-            bg-purple-900
-            text-white
-            text-sm">Open</a>
-        </div>
-    {:else}
-        <div class="my-5">
-            <a href="nostr:{nip19.npubEncode(zap.recipient)}" class="
-            py-2
-            px-4
-            my-5
-            rounded-lg
-            bg-purple-900
-            text-white
-            text-sm">Open Profile</a>
-        </div>
-    {/if}
-{/if}
-
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="
     flex flex-col py-1  w-full
     hover:bg-purple-50 dark:hover:bg-purple-1000
-    {opened ? 'bg-purple-100 dark:bg-purple-900 border border-purple-900' : 'bg-white dark:bg-gray-900'}
+    bg-white dark:bg-gray-900
+    {zap?.expired && 'opacity-50'}
     cursor-pointer md:mb-4 md:rounded md:shadow border-b-gray-300 dark:border-b-gray-800 border-b amax-h-24
     items-center
     justify-between
@@ -101,6 +80,7 @@
             <Avatar klass="m-2 w-16 h-16 ring-8 ring-purple-1000" pubkey={zap.sender} />
             <div class="font-bold text-xl text-clip hidden sm:block overflow-scroll">
                 <span class="w-16">{senderName}</span>
+                {zap.id}
             </div>
         </div>
 

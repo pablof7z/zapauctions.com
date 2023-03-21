@@ -8,6 +8,7 @@ export const nostrPool = writable(new Nostr());
 export const seenEvents = writable({});
 export const nostrNotes = writable({});
 export const zaps = writable([]);
+export const zapRequests = writable({})
 export const recentZaps = writable([]);
 export const zapraisers = writable([]);
 export const profiles = writable({});
