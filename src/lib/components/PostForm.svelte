@@ -71,6 +71,7 @@
 
         let { publishEvent } = await $nostrPool.signAndPublishEvent(event);
         publishEventId = publishEvent.id;
+        console.log(event);
     }
 
     // hack? what hack?
