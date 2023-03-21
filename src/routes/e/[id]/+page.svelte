@@ -1,29 +1,37 @@
 <script>
-    import { nostrPool, nostrNotes, profiles, zapRequestsPerNote, zapRequests } from '$lib/store';
+    import {
+        nostrPool,
+        nostrNotes,
+        profiles,
+        zapRequestsPerNote,
+        zapRequests,
+        loggedUser,
+        zapsPerNote,
+        zaps
+    } from '$lib/store';
     import AuctionNote from '$lib/components/AuctionNote.svelte';
-    import Zap from '$lib/components/Zap.svelte';
 
     import { onMount } from 'svelte';
     import { page } from '$app/stores';
     import AuctionStats from '$lib/components/AuctionStats.svelte';
+    import Bid from '$lib/components/Bid.svelte';
 
     let noteId = $page.params.id;
-
-    let sortedZapRequests;
-
-    $: {
-        if ($zapRequestsPerNote[noteId] && zapRequests) {
-            sortedZapRequests = $zapRequestsPerNote[noteId].map(
-                (zapRequestId) => $zapRequests[zapRequestId]
-            );
-            // sortedZapRequests = sortedZapRequests.sort((a, b) => b.amount - a.amount);
-            sortedZapRequests = sortedZapRequests.sort((a, b) => a.created_at - b.created_at);
-        }
-    }
+    let sortedZaps;
 
     onMount(async () => {
-        $nostrPool.subscribe([{ ids: noteId }, { kinds: [9734], '#e': noteId }], 10000);
+        $nostrPool.subscribe([{ ids: [noteId] }], 10000);
+        $nostrPool.subscribe([{ kinds: [9734], '#e': [noteId] }], 10000);
+        $nostrPool.subscribe([{ kinds: [9735], '#e': [noteId] }], 10000);
     });
+
+    $: {
+        if ($zapsPerNote[noteId] && $zapsPerNote[noteId].length > 1) {
+            sortedZaps = $zapsPerNote[noteId].sort((z1, z2) =>
+                z1.amount < z2.amount ? 1 : z1.amount > z2.amount ? -1 : 0
+            );
+        }
+    }
 
     function submit({ detail: formData }) {
         let data = {};
@@ -38,20 +46,26 @@
     }
 </script>
 
-<h1 class="text-center mt-8 mb-4 text-2xl md:text-3xl">Active Auction</h1>
-{#if $nostrNotes[noteId]}
-    <AuctionStats note={$nostrNotes[noteId]} />
-{/if}
+<div
+    class="auctionWrapper flex flex-col mx-8 md:flex-row gap-8 justify-center md:justify-around mt-6"
+>
+    <div class="auctionNote w-full md:w-2/5 overflow-hidden text-ellipsis">
+        {#if $nostrNotes[noteId]}
+            <AuctionNote note={$nostrNotes[noteId]} />
+        {/if}
+        {#if $nostrNotes[noteId]}
+            <AuctionStats note={$nostrNotes[noteId]} {sortedZaps} />
+        {/if}
+    </div>
 
-<div class="auctionWrapper" />
-{#if $nostrNotes[noteId]}
-    <AuctionNote note={$nostrNotes[noteId]} />
-{/if}
-
-<h1 class="text-center mt-8 mb-4 text-2xl md:text-3xl">Bids</h1>
-
-{#if $zapRequestsPerNote[noteId]}
-    {#each sortedZapRequests as zapRequest}
-        <Zap zap={{ event: zapRequest, ...zapRequest }} opened={false} />
-    {/each}
-{/if}
+    <div class="bids w-full md:w-2/5">
+        <div class="scrollContainer overflow-scroll max-h-screen">
+            <h1 class="text-center mb-4 text-2xl md:text-3xl">Bids</h1>
+            {#if sortedZaps}
+                {#each Object.entries(sortedZaps) as [id, zap]}
+                    <Bid {zap} opened={false} />
+                {/each}
+            {/if}
+        </div>
+    </div>
+</div>

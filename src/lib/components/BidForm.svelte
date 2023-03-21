@@ -3,6 +3,8 @@
     import axios from 'axios';
     import { requestProvider } from 'webln';
     import { Disclosure, DisclosureButton, DisclosurePanel } from '@rgossiaux/svelte-headlessui';
+    import { loggedUser } from '$lib/store';
+    import LoginButton from '$lib/components/LoginButton.svelte';
 
     export let note;
     let amount, comment;
@@ -37,46 +39,58 @@
         // console.log($nostrPool.pool.pool);
         // $nostrPool.pool.pool.send(['EVENT', zapRequest]);
 
-        // const { data } = await axios.get(
-        //     `https://d1538f2d25c5.ngrok.app/e/${note.id}/bid?amount=${
-        //         amount * 1000
-        //     }&nostr=${zapRequest}`
-        // );
-        // console.log(data);
+        const { data } = await axios.get(
+            `https://d1538f2d25c5.ngrok.app/e/${note.id}/bid?amount=${
+                amount * 1000
+            }&nostr=${zapRequest}`
+        );
+        console.log(data);
 
-        // const { pr } = data;
+        const { pr } = data;
 
-        // const webln = await requestProvider();
-        // webln.sendPayment(pr);
+        const webln = await requestProvider();
+        webln.sendPayment(pr);
     }
 </script>
 
 <div class="bidAccordian">
     <Disclosure>
-        <DisclosureButton>Make a bid!</DisclosureButton>
-
-        <DisclosurePanel>
-            <form on:submit={makeBid} id="bid-form" class="flex flex-col gap-4 text-lg">
-                <div class="form-group">
-                    <label class="form-label" for="amount">Amount</label>
-                    <input bind:value={amount} type="text" name="amount" class="form-input" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="comment">Bid Comment (optional)</label>
-                    <input bind:value={comment} type="text" name="comment" class="form-input" />
-                </div>
-
-                <button
-                    type="submit"
-                    class="w-full text-center rounded-md border border-transparent bg-purple-900 px-3 py-2 text-base font-medium text-white shadow-sm hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex flex-row items-center justify-center"
-                >
-                    <img src="https://nostrica.com/images/shaka.png" alt="" class="mr-3 h-full" />
-                    <div class="flex flex-col items-start">
-                        <h1>Bid!</h1>
-                        <!-- <h3 class="text-sm text-purple-200 font-light">(0 sats)</h3> -->
+        <DisclosureButton class="text-center block w-full font-bold text-lg md:text-xl"
+            >⚡ Make a bid!</DisclosureButton
+        >
+        {#if $loggedUser}
+            <DisclosurePanel>
+                <form on:submit={makeBid} id="bid-form" class="flex flex-col gap-4 mt-6 text-lg">
+                    <div class="form-group">
+                        <label class="form-label" for="amount">Amount</label>
+                        <input bind:value={amount} type="text" name="amount" class="form-input" />
                     </div>
-                </button>
-            </form>
-        </DisclosurePanel>
+                    <div class="form-group">
+                        <label class="form-label" for="comment">Bid Comment (optional)</label>
+                        <input bind:value={comment} type="text" name="comment" class="form-input" />
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full text-center rounded-md border border-transparent bg-purple-900 px-3 py-2 text-base font-medium text-white shadow-sm hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 flex flex-row items-center justify-center"
+                    >
+                        <img
+                            src="https://nostrica.com/images/shaka.png"
+                            alt=""
+                            class="mr-3 h-full"
+                        />
+                        <div class="flex flex-col items-start">
+                            <h1>Bid!</h1>
+                            <!-- <h3 class="text-sm text-purple-200 font-light">(0 sats)</h3> -->
+                        </div>
+                    </button>
+                </form>
+            </DisclosurePanel>
+        {:else}
+            <DisclosurePanel class="pt-6 text-center">
+                You need to log in first.
+                <LoginButton />
+            </DisclosurePanel>
+        {/if}
     </Disclosure>
 </div>

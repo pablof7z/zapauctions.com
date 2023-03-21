@@ -6,7 +6,6 @@
     onMount(() => {
         $nostrPool.subscribe([{ kinds: [1] }], 10000);
     });
-    console.log($nostrNotes);
 </script>
 
 <svelte:head>

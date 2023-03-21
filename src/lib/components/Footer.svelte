@@ -1,7 +1,12 @@
+<script>
+    import RelayGear from '$lib/components/RelayGear.svelte';
+</script>
+
 <footer
-    class="fixed py-2 bg-gray-50/90 dark:bg-gray-900/90 font-mono text-gray-50 w-full text-center mt-12 left-0 bottom-0"
+    class="fixed flex justify-between items-center flex-row py-2 px-4 bg-gray-50/90 dark:bg-gray-900/90 font-mono text-gray-50 w-full text-center mt-12 left-0 bottom-0"
 >
-    <div class="flex justify-center flex-row">
+    <RelayGear />
+    <div class="flex flex-row">
         <div class="text-sm">
             🍍 ZapAuction by
             <a class="text-purple-50 hover:text-purple-400" href="https://pablof7z.com">

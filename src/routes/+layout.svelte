@@ -6,11 +6,12 @@
     import { nostrPool, relayEvents } from '$lib/store';
     import { onMount } from 'svelte';
     import '../app.css';
+    import RelayGear from '$lib/components/RelayGear.svelte';
 
     TimeAgo.addDefaultLocale(en);
 
     onMount(async () => {
-        // await $nostrPool.add('wss://relay.nostr.band');
+        await $nostrPool.add('wss://relay.damus.io');
         // await $nostrPool.add('wss://522bda0c286d.ngrok.app');
         await $nostrPool.add('ws://localhost:8080');
 
@@ -30,12 +31,10 @@
 </script>
 
 <div class="wrapper">
-    <div class="w-7/8 min-w-fit max-w-4xl mx-auto flex flex-col font-sans antialiased">
+    <div class=" flex flex-col font-sans antialiased">
         <div class="flex flex-col w-full">
-            <Header />
-            <div
-                class="mb-20 content-wrapper w-7/8 min-w-fit max-w-4xl mx-auto flex flex-col font-sans antialiased"
-            >
+            <!-- <Header /> -->
+            <div class="mb-20 content-wrapper flex flex-col font-sans antialiased">
                 <slot />
             </div>
             <Footer />
