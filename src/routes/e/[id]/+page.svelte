@@ -1,5 +1,5 @@
 <script>
-    import { nostrPool, nostrNotes, profiles, zapRequestsPerNote } from '$lib/store';
+    import { nostrPool, nostrNotes, profiles, zapRequestsPerNote, zapRequests } from '$lib/store';
     import Note from '$lib/components/Note.svelte';
     import Zap from '$lib/components/Zap.svelte';
 
@@ -8,19 +8,21 @@
 
     let noteId = $page.params.id;
 
-    let showReplyForm = false;
     let sortedZapRequests;
 
     $: {
-        if ($zapRequestsPerNote[noteId]) {
-            sortedZapRequests = $zapRequestsPerNote[noteId].sort((a, b) => b.amount - a.amount);
+        if ($zapRequestsPerNote[noteId] && zapRequests) {
+            sortedZapRequests = $zapRequestsPerNote[noteId].map(zapRequestId => $zapRequests[zapRequestId]);
+            // sortedZapRequests = sortedZapRequests.sort((a, b) => b.amount - a.amount);
+            sortedZapRequests = sortedZapRequests.sort((a, b) => a.created_at - b.created_at);
         }
     }
 
     onMount(async () => {
         $nostrPool.subscribe([
             {ids: noteId },
-            {kinds:[9734], '#e': noteId}], 10000);
+            {kinds:[9734], '#e': noteId},
+        ], 10000);
     })
 
     function submit({detail: formData}) {
@@ -43,7 +45,8 @@
 <h1>bids</h1>
 
 {#if $zapRequestsPerNote[noteId]}
-    {#each $zapRequestsPerNote[noteId] as zapRequest}
-        <Zap zap={zapRequest} opened={false} />
+    {#each sortedZapRequests as zapRequest}
+        <pre>{zapRequest}</pre>
+        <Zap zap={{event: zapRequest, ...zapRequest}} opened={false} />
     {/each}
 {/if}

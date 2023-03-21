@@ -10,7 +10,8 @@ import {
     totalsPerRecipient,
     totalsPerSender,
     totalsPerZapper,
-    zapRequestsPerNote
+    zapRequestsPerNote,
+    zapRequests,
 } from '$lib/store';
 import 'websocket-polyfill';
 import { RelayPool, Relay } from 'nostr';
@@ -140,7 +141,32 @@ export default class Nostr {
         });
     }
 
+    processZapExpired(deleteEvent) {
+        // check if this ID is in the zaprequests
+        const noteTag = deleteEvent.tags.find(t => t[0] === 'e');
+        // verify signature and that it's coming from my pubkey
+        if (!noteTag) return;
+        const taggedNoteId = noteTag[1];
+
+        zapRequests.update((requests) => {
+            if (!requests) requests = {};
+
+            if (requests[taggedNoteId]) {
+                requests[taggedNoteId].expired = true;
+            } else {
+                setTimeout(() => {
+                    this.processZapExpired(deleteEvent)
+                }, 1000);
+            }
+
+            return requests;
+        });
+    }
+
     processZapRequest(event) {
+        if (event.created_at < 1679362082) return;
+        console.log(event);
+
         const noteTag = event.tags.find((t) => t[0] === 'e');
         const amountTag = event.tags.find((t) => t[0] === 'amount');
         if (!noteTag || !amountTag) return;
@@ -150,9 +176,15 @@ export default class Nostr {
 
         event.amount = amount / 1000;
 
+        zapRequests.update((requests) => {
+            if (!requests) requests = {}
+            requests[event.id] = event;
+            return requests;
+        });
+
         zapRequestsPerNote.update((requests) => {
             requests[taggedNote] = requests[taggedNote] || [];
-            requests[taggedNote].push(event);
+            requests[taggedNote].push(event.id);
             return requests;
         });
     }
@@ -338,6 +370,9 @@ export default class Nostr {
         }
         if (event.kind === 9735) {
             this.processZap(event);
+        }
+        if (event.kind === 5) {
+            this.processZapExpired(event);
         }
 
         // if (event.kind === 9735) {

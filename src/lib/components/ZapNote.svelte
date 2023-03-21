@@ -41,10 +41,10 @@
         const {data} = await axios.get(`/e/${note.id}/bid?amount=${amount*1000}&nostr=${zapRequest}`)
         console.log(data);
 
-        // const {pr} = data;
+        const {pr} = data;
 
-        // const webln = await requestProvider();
-        // webln.sendPayment(pr);
+        const webln = await requestProvider();
+        webln.sendPayment(pr);
     }
 </script>
 
