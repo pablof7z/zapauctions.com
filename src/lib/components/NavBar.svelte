@@ -25,7 +25,6 @@
         const publicKey = await window.nostr.getPublicKey();
         loggedUser.set(publicKey);
         localStorage.setItem('loggedUserPubkey', publicKey);
-        console.log(publicKey);
     }
 
     export function logout() {
@@ -55,8 +54,9 @@
                     href="/e/new"
                     alt="Create a listing"
                     class="px-2 py-1.5
-                    hover:bg-indigo-400 hover:dark:bg-indigo-700
-                    border border-indigo-400 dark:border-indigo-700
+                    text-indigo-700 hover:text-white
+                    hover:bg-indigo-400 dark:hover:bg-indigo-700/40
+                    border border-indigo-700 dark:border-indigo-700
                     dark:text-gray-200 dark:hover:text-white rounded-lg"
                 >
                     Create a listing
@@ -64,7 +64,7 @@
             </div>
             <Popover style="position: relative;">
                 <PopoverButton
-                    class="px-2 py-1 border border-yellow-700 dark:border-yellow-400 rounded-lg"
+                    class="px-2 py-1 border border-yellow-700 dark:border-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-50/20 rounded-lg"
                     >Relays</PopoverButton
                 >
                 <Transition
@@ -82,7 +82,7 @@
             </Popover>
             <Popover style="position: relative;">
                 <PopoverButton
-                    class="px-2 py-1 border border-yellow-700 dark:border-yellow-400 rounded-lg"
+                    class="px-2 py-1 border border-yellow-700 dark:border-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-50/20 rounded-lg"
                     >About</PopoverButton
                 >
                 <Transition
@@ -110,7 +110,7 @@
                 </Transition>
             </Popover>
             {#if loggedIn}
-                <Popover style="position: relative;">
+                <Popover style="position: relative;" class="flex flex-row items-center">
                     <PopoverButton>
                         <Avatar pubkey={$loggedUser} klass="h-8 w-8" />
                     </PopoverButton>
