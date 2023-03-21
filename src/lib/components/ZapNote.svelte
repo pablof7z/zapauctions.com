@@ -18,7 +18,7 @@
                 ['amount', `${amountInSats * 1000}`]
             ],
             content: content || ''
-        }
+        };
 
         zapRequestEvent.id = getEventHash(zapRequestEvent);
         zapRequestEvent = await window.nostr.signEvent(zapRequestEvent);
@@ -27,8 +27,8 @@
     }
 
     async function zap() {
-        const amount = prompt(`How much do you want to bid? (in sats)`)
-        const content = prompt(`Zap comment?`)
+        const amount = prompt(`How much do you want to bid? (in sats)`);
+        const content = prompt(`Zap comment?`);
         let zapRequest = await getZapRequest(amount, content);
         console.log(zapRequest);
         if (!zapRequest) return;
@@ -38,16 +38,23 @@
         // console.log($nostrPool.pool.pool);
         // $nostrPool.pool.pool.send(['EVENT', zapRequest]);
 
-        const {data} = await axios.get(`/e/${note.id}/bid?amount=${amount*1000}&nostr=${zapRequest}`)
+        const { data } = await axios.get(
+            `https://d1538f2d25c5.ngrok.app/e/${note.id}/bid?amount=${
+                amount * 1000
+            }&nostr=${zapRequest}`
+        );
         console.log(data);
 
-        const {pr} = data;
+        const { pr } = data;
 
         const webln = await requestProvider();
         webln.sendPayment(pr);
     }
 </script>
 
-<button class="bg-purple-600 text-white px-8 py-2 font-bold text-xl flex-1 md:flex-0" on:click={zap}>
+<button
+    class="bg-purple-600 text-white px-8 py-2 font-bold text-xl flex-1 md:flex-0"
+    on:click={zap}
+>
     ⚡️ ZAP IT
 </button>

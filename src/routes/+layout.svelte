@@ -11,6 +11,7 @@
 
     onMount(async () => {
         // await $nostrPool.add('wss://relay.nostr.band');
+        // await $nostrPool.add('wss://522bda0c286d.ngrok.app');
         await $nostrPool.add('ws://localhost:8080');
 
         // try {
